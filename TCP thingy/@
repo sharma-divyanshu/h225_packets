@@ -1,0 +1,128 @@
+function q931receive (payload) {
+
+        console.log('Payload');
+
+        console.log( payload );
+	var disc = payload[0];
+	//console.log(disc)
+	var calv_len = payload[1];
+	console.log(parseInt(calv_len))
+	var cal_value = payload.slice(2,2+parseInt(calv_len))
+	var payload = payload.slice(2+parseInt(calv_len))
+	var m_type = payload.slice[0]
+	buff_handle(payload,function(first,second){
+		console.log(first,second)
+		buff_handle(second,function(f1,f2){
+			console.log({f1,f2})
+		})
+	})
+	//var bcap_ie = rempay[1]
+	//var bcap_len = ie_type(bcap_ie)  //change
+	//var bcap = rempay.slice(2,2+bcal_len)
+	//rempay  = rempay.slice(2+bcap_len)
+	//var display_ie = rempay[0]
+	//var display_len = ie_type(display_ie)
+	//var display = rempay.slice(,2+display_len)
+	
+}
+
+ 
+
+function connectionhandler (sock) {
+
+        function datahandler(data) {
+
+                b = Buffer.concat([b, data]);
+
+                evaluate();
+
+        }
+
+ 
+
+        function evaluate() {
+
+                for( ; ; ) {
+
+                        if (b.length < 4) {
+
+                                return;
+
+                        }
+
+ 
+
+                        var L = 256*b[2] + b[3];
+
+ 
+
+                        if (b.length < L) {
+
+                                return;
+
+                        }
+
+ 
+
+                        payload = b.slice(4, L);
+
+                        b = b.slice( L );
+
+ 
+
+                        q931receive( payload );
+
+                }
+
+        }
+
+ 
+
+        function closehandler() {
+
+                return;
+
+        }
+
+ 
+
+        b = Buffer.from('', 'hex');
+
+        sock.on( 'data', datahandler );
+
+        sock.on( 'close', closehandler );
+
+}
+
+function buff_handle(buffer){
+	console.log(buffer)
+	let ie = buffer[0]
+	let len_byte = 0
+	var len = parseInt(ie,16)
+	var leng,ct
+	console.log({ie,len})
+	if(len>=126){
+		leng = buffer[1] + buffer[2]
+		ct = 2	
+	}		
+	else{
+		leng = buffer[1]
+		ct =1
+	}
+	var datalen = parseInt(leng,16)
+	var first = buffer.splice(0,ct+datalen)
+	var second = buffer.splice(ct+datalen)
+	callback(first,second)
+}
+
+var net = require( 'net' );
+
+var server = net.createServer();
+
+ 
+
+server.on( 'connection', connectionhandler );
+
+server.listen( 1720, '0.0.0.0' );
+
+process.stdout.write( "Ready.\n" );
